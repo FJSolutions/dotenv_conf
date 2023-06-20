@@ -1,8 +1,20 @@
-use std::collections::HashMap;
+use crate::ReadConfig;
 
-pub fn read_from_env<'a>(
-    hash_map: &'a mut HashMap<String, String>,
-    key: &str,
-) -> &'a mut HashMap<String, String> {
-    hash_map
+pub struct EnvConfigReader {}
+
+impl EnvConfigReader {
+    fn new() -> EnvConfigReader {
+        EnvConfigReader {}
+    }
+}
+
+impl ReadConfig for EnvConfigReader {
+    fn read_config(&mut self) {}
+
+    fn get_value(&self, key: String) -> Option<String> {
+        match std::env::var(key) {
+            Ok(val) => Some(val),
+            _ => None,
+        }
+    }
 }

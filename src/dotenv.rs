@@ -7,9 +7,11 @@ pub struct DotEnvReader {
 }
 
 impl DotEnvReader {
-    fn new() -> DotEnvReader {
+    pub fn new() -> DotEnvReader {
         let hash_map: HashMap<String, String> = HashMap::new();
-        DotEnvReader { hash_map }
+        let mut rdr = DotEnvReader { hash_map };
+        rdr.read_config();
+        rdr
     }
 }
 
@@ -33,8 +35,8 @@ impl ReadConfig for DotEnvReader {
         }
     }
 
-    fn get_value(&self, key: String) -> Option<String> {
-        self.hash_map.get(&key).map(|val| val.clone())
+    fn get_value(&self, key: impl Into<String>) -> Option<String> {
+        self.hash_map.get(&key.into()).map(|val| val.clone())
     }
 }
 

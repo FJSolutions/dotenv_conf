@@ -2,18 +2,20 @@ use std::{collections::HashMap, env};
 
 use crate::ReadConfig;
 
-pub struct CmdLineCfgReader {
+pub struct ArgsReader {
     hash_map: HashMap<String, String>,
 }
 
-impl CmdLineCfgReader {
-    fn new() -> CmdLineCfgReader {
+impl ArgsReader {
+    pub fn new() -> ArgsReader {
         let hash_map: HashMap<String, String> = HashMap::new();
-        CmdLineCfgReader { hash_map }
+        let mut rdr = ArgsReader { hash_map };
+        rdr.read_config();
+        rdr
     }
 }
 
-impl ReadConfig for CmdLineCfgReader {
+impl ReadConfig for ArgsReader {
     fn read_config(&mut self) {
         let args: Vec<String> = env::args().collect();
         let mut index: usize = 1;
@@ -28,8 +30,8 @@ impl ReadConfig for CmdLineCfgReader {
         }
     }
 
-    fn get_value(&self, key: String) -> Option<String> {
-        self.hash_map.get(&key).cloned()
+    fn get_value(&self, key: impl Into<String>) -> Option<String> {
+        self.hash_map.get(&key.into()).cloned()
     }
 }
 
@@ -70,7 +72,7 @@ mod tests {
 
     #[test]
     fn it_works() {
-        let mut rdr = CmdLineCfgReader::new();
+        let mut rdr = ArgsReader::new();
         rdr.read_config();
 
         dbg!(&rdr.hash_map);

@@ -1,6 +1,6 @@
 use std::{collections::HashMap, fs, path::Path};
 
-use crate::ReadConfig;
+use crate::ReadConf;
 
 pub struct DotEnvReader {
     hash_map: HashMap<String, String>,
@@ -15,7 +15,7 @@ impl DotEnvReader {
     }
 }
 
-impl ReadConfig for DotEnvReader {
+impl ReadConf for DotEnvReader {
     fn read_config(&mut self) {
         let file = Path::new("./.env");
         if file.is_file() {

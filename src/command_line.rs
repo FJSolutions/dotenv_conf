@@ -1,6 +1,6 @@
 use std::{collections::HashMap, env};
 
-use crate::ReadConfig;
+use crate::ReadConf;
 
 pub struct ArgsReader {
     hash_map: HashMap<String, String>,
@@ -15,7 +15,7 @@ impl ArgsReader {
     }
 }
 
-impl ReadConfig for ArgsReader {
+impl ReadConf for ArgsReader {
     fn read_config(&mut self) {
         let args: Vec<String> = env::args().collect();
         let mut index: usize = 1;
@@ -34,21 +34,6 @@ impl ReadConfig for ArgsReader {
         self.hash_map.get(&key.into()).cloned()
     }
 }
-
-// pub fn read_from_args(hash_map: &mut HashMap<String, String>) -> &mut HashMap<String, String> {
-//     let args: Vec<String> = env::args().collect();
-//     let mut index: usize = 1;
-//     'l: loop {
-//         match read_key_value(&args, index) {
-//             Some((i, k, v)) => {
-//                 hash_map.insert(k, v);
-//                 index = i;
-//             }
-//             None => break 'l,
-//         }
-//     }
-//     hash_map
-// }
 
 fn read_key_value(args: &[String], index: usize) -> Option<(usize, String, String)> {
     if let Some(k) = args.get(index) {

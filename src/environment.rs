@@ -1,4 +1,4 @@
-use crate::ReadConfig;
+use crate::ReadConf;
 
 pub struct EnvReader {}
 
@@ -8,7 +8,7 @@ impl EnvReader {
     }
 }
 
-impl ReadConfig for EnvReader {
+impl ReadConf for EnvReader {
     fn read_config(&mut self) {}
 
     fn get_value(&self, key: impl Into<String>) -> Option<String> {

@@ -8,7 +8,7 @@ mod dotenv;
 mod environment;
 
 /// Defines the traits a config reader needs to implement.
-pub trait ReadConf {
+trait ReadConf {
     /// Read the config source data
     fn read_config(&mut self);
     /// Get a String value from the source data.

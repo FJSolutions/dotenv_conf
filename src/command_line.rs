@@ -22,6 +22,7 @@ impl ReadConf for ArgsReader {
         'l: loop {
             match read_key_value(&args, index) {
                 Some((i, k, v)) => {
+                    // dbg!("Command line argument: ({}, {})", &k, &v);
                     self.hash_map.insert(k, v);
                     index = i;
                 }
@@ -38,13 +39,27 @@ impl ReadConf for ArgsReader {
 fn read_key_value(args: &[String], index: usize) -> Option<(usize, String, String)> {
     if let Some(k) = args.get(index) {
         if let Some(v) = args.get(index + 1) {
-            if v.starts_with("--") || v.starts_with('-') {
-                Some((index + 1, k.to_owned(), String::new()))
+            if k.starts_with("--") {
+                // println!("Double dash command line argument");
+                Some((index + 1, k[2..].to_owned(), v.to_owned()))
+            } else if k.starts_with('-') {
+                // println!("Single dash command line argument");
+                Some((index + 1, k[1..].to_owned(),  v.to_owned()))
             } else {
+                // println!("No dash command line argument");
                 Some((index + 2, k.to_owned(), v.to_owned()))
             }
         } else {
-            None
+            // It's a switch not a value option
+            if k.starts_with("--") {
+                // println!("Double dash command line argument");
+                Some((index + 1, k[2..].to_owned(), String::new()))
+            } else if k.starts_with('-') {
+                // println!("Single dash command line argument");
+                Some((index + 1, k[1..].to_owned(), String::new()))
+            }else{
+                None
+            }
         }
     } else {
         None

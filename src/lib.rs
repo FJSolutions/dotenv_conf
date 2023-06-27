@@ -7,6 +7,14 @@ mod command_line;
 mod dotenv;
 mod environment;
 
+/// Defines the traits a config reader needs to implement.
+pub trait ReadConf {
+    /// Read the config source data
+    fn read_config(&mut self);
+    /// Get a String value from the source data.
+    fn get_value(&self, key: impl Into<String>) -> Option<String>;
+}
+
 #[derive(Debug)]
 pub struct ConfVal {
     key: String,
@@ -33,45 +41,50 @@ impl ConfVal {
         self
     }
 
-    pub fn as_string_option(self, rdr: &ConfReader) -> Option<String> {
+    pub fn as_string_option(&self, rdr: &ConfReader) -> Option<String> {
         let mut value = None;
 
-        if let Some(val) = rdr.get_value(&self.key.as_str()) {
+        if let Some(val) = rdr.get_value(self.key.as_str()) {
             value = Some(val);
+            // dbg!("(Dot)Env: {:?}", &value);
         };
 
-        if let Some(cmd_key) = self.cmd_line_arg {
-            if let Some(val) = rdr.get_value(&cmd_key) {
+        if let Some(cmd_key) = &self.cmd_line_arg {
+            if let Some(val) = rdr.get_value(cmd_key) {
                 value = Some(val);
+                // dbg!("Long CommandLine Arg:  {:?}", &value);
             }
         }
 
-        if let Some(cmd_key) = self.cmd_line_short {
-            if let Some(val) = rdr.get_value(&cmd_key) {
+        if let Some(cmd_key) = &self.cmd_line_short {
+            if let Some(val) = rdr.get_value(cmd_key) {
                 value = Some(val);
+                // dbg!("Short CommandLine Arg: {:?}", &value);
             }
         }
 
         value
     }
 
-    pub fn as_string(self, rdr: &ConfReader) -> Result<String, String> {
-        let val = self.as_string_option(rdr);
-
-        if val.is_none() {
+    pub fn as_string(&self, rdr: &ConfReader) -> Result<String, String> {
+        let Some(val) = self.as_string_option(rdr) else {
             return Err(String::from("No key was supplied for the config value."));
-        }
+        };
 
-        Ok(val.unwrap())
+        Ok(val)
     }
-}
 
-/// Defines the traits a config reader needs to implement.
-pub trait ReadConf {
-    /// Read the config source data
-    fn read_config(&mut self);
-    /// Get a String value from the source data.
-    fn get_value(&self, key: impl Into<String>) -> Option<String>;
+    // pub fn as_u16_option(&self, rdr: &ConfReader) -> Option<u16> {
+    //     // TODO How to differentiate  when the value won't parse and the key(s) aren't found?
+    //     match self.as_string_option(rdr) {
+    //         None => None,
+    //         Some(s) => s.parse::<u16>().ok(),
+    //     }
+    // }
+
+    // pub fn as_u16(self, _rdr: &ConfReader) -> Result<u16, String> {
+    //     todo!()
+    // }
 }
 
 #[derive(PartialEq, Debug)]
@@ -99,17 +112,20 @@ impl Default for ConfReader {
 
 impl ConfReader {
     pub fn new(sources: Vec<ConfSource>) -> Self {
-        let dot_env_rdr = if sources.contains(&ConfSource::Environment) {
+        let dot_env_rdr = if sources.contains(&ConfSource::DotEnv) {
+            // dbg!("New DotEnvRdr");
             Some(DotEnvReader::new())
         } else {
             None
         };
         let env_rdr = if sources.contains(&ConfSource::Environment) {
+            // dbg!("New EnvRdr");
             Some(EnvReader::new())
         } else {
             None
         };
         let args_rdr = if sources.contains(&ConfSource::CommandLine) {
+            // dbg!("New CommandLineRdr");
             Some(ArgsReader::new())
         } else {
             None
@@ -128,16 +144,19 @@ impl ConfReader {
         if let Some(rdr) = &self.dot_env_rdr {
             if let Some(v) = rdr.get_value(key) {
                 val = Some(v);
+                // dbg!("DotEnvReader reader get_value: {:?}", &val);
             }
         };
         if let Some(rdr) = &self.env_rdr {
             if let Some(v) = rdr.get_value(key) {
                 val = Some(v);
+                // dbg!("EnvReader reader get_value: {:?}", &val);
             }
         };
         if let Some(rdr) = &self.args_rdr {
             if let Some(v) = rdr.get_value(key) {
                 val = Some(v);
+                // dbg!("ArgsReader reader get_value: {:?}", &val);
             }
         };
 
@@ -182,7 +201,7 @@ mod tests {
     }
 
     #[test]
-    fn read_config_alt_value() {
+    fn read_config_option_value() {
         let rdr = ConfReader::default();
 
         let config = TestConfig {
@@ -192,5 +211,17 @@ mod tests {
 
         assert!(config.uid.is_some());
         assert_eq!(config.uid, Some("Francis".to_owned()));
+    }
+
+    #[test]
+    fn read_config_required_string_value() {
+        let rdr = ConfReader::default();
+
+        let config = TestConfig {
+            db_con_str: ConfVal::new("DB").as_string(&rdr).unwrap(),
+            ..TestConfig::default()
+        };
+
+        assert_eq!(config.db_con_str, "Postgres".to_owned());
     }
 }

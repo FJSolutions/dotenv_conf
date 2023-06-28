@@ -24,7 +24,7 @@ impl ReadConf for ArgsReader {
                 Some((i, k, v)) => {
                     // dbg!("Command line argument: ({}, {})", &k, &v);
                     self.hash_map.insert(k, v);
-                    index = i;
+                    index += i;
                 }
                 None => break 'l,
             }
@@ -37,6 +37,7 @@ impl ReadConf for ArgsReader {
 }
 
 fn read_key_value(args: &[String], index: usize) -> Option<(usize, String, String)> {
+    // dbg!("read_key_value: {} = {}", &index, &args);
     if let Some(k) = args.get(index) {
         if let Some(v) = args.get(index + 1) {
             if k.starts_with("--") {

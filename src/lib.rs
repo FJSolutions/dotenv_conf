@@ -42,13 +42,19 @@ impl ConfVal {
     }
 
     pub fn as_string_option(&self, rdr: &ConfReader) -> Option<String> {
+        self.as_string(rdr).ok()
+    }
+
+    pub fn as_string(&self, rdr: &ConfReader) -> Result<String, String> {
         let mut value = None;
 
-        if let Some(val) = rdr.get_value(self.key.as_str()) {
+        // Check if there was a short command line argument supplied for this value
+        if let Some(val) = rdr.get_value(&self.key) {
             value = Some(val);
             // dbg!("(Dot)Env: {:?}", &value);
         };
 
+        // Check if there was a command line argument (--arg) supplied for this value
         if let Some(cmd_key) = &self.cmd_line_arg {
             if let Some(val) = rdr.get_value(cmd_key) {
                 value = Some(val);
@@ -56,6 +62,7 @@ impl ConfVal {
             }
         }
 
+        // Check if there was a short command line argument (-a) supplied for this value
         if let Some(cmd_key) = &self.cmd_line_short {
             if let Some(val) = rdr.get_value(cmd_key) {
                 value = Some(val);
@@ -63,28 +70,200 @@ impl ConfVal {
             }
         }
 
-        value
-    }
-
-    pub fn as_string(&self, rdr: &ConfReader) -> Result<String, String> {
-        let Some(val) = self.as_string_option(rdr) else {
-            return Err(String::from("No key was supplied for the config value."));
+        // No value found
+        let Some(value) = value else {
+            return Err(format!("No value was found for the key '{}'", &self.key).to_string());
         };
 
-        Ok(val)
+        // Empty value found
+        if value.is_empty() {
+            return Err(format!("An empty string was found for the key '{}'", &self.key).to_string());
+        };
+
+        Ok(value)
     }
 
-    // pub fn as_u16_option(&self, rdr: &ConfReader) -> Option<u16> {
-    //     // TODO How to differentiate  when the value won't parse and the key(s) aren't found?
-    //     match self.as_string_option(rdr) {
-    //         None => None,
-    //         Some(s) => s.parse::<u16>().ok(),
-    //     }
-    // }
+    pub fn as_bool_option(&self, rdr: &ConfReader) -> Option<bool> {
+        self.as_bool(rdr).ok()
+    }
 
-    // pub fn as_u16(self, _rdr: &ConfReader) -> Result<u16, String> {
-    //     todo!()
-    // }
+    pub fn as_bool(&self, rdr: &ConfReader) -> Result<bool, String> {
+        let value = self.as_string(rdr)?;
+
+        let Ok(value) = value.to_lowercase().parse::<bool>() else {
+            return Err(format!("'{}' could not be parsed as a `bool` for the key: '{}'", value, self.key));
+        };
+        
+        Ok(value)
+    }
+
+    pub fn as_u8_option(&self, rdr: &ConfReader) -> Option<u8> {
+        self.as_u8(rdr).ok()
+    }
+
+    pub fn as_u8(&self, rdr: &ConfReader) -> Result<u8, String> {
+        let value = self.as_string(rdr)?;
+
+        let Ok(value) = value.parse::<u8>() else {
+            return Err(format!("'{}' could not be parsed as a `u8` for the key: '{}'", value, self.key));
+        };
+        
+        Ok(value)
+    }
+
+    pub fn as_u16_option(&self, rdr: &ConfReader) -> Option<u16> {
+        self.as_u16(rdr).ok()
+    }
+
+    pub fn as_u16(&self, rdr: &ConfReader) -> Result<u16, String> {
+        let value = self.as_string(rdr)?;
+
+        let Ok(value) = value.parse::<u16>() else {
+            return Err(format!("'{}' could not be parsed as a `u16` for the key: '{}'", value, self.key));
+        };
+        
+        Ok(value)
+    }
+
+    pub fn as_u32_option(&self, rdr: &ConfReader) -> Option<u32> {
+        self.as_u32(rdr).ok()
+    }
+
+    pub fn as_u32(&self, rdr: &ConfReader) -> Result<u32, String> {
+        let value = self.as_string(rdr)?;
+
+        let Ok(value) = value.parse::<u32>() else {
+            return Err(format!("'{}' could not be parsed as a `u32` for the key: '{}'", value, self.key));
+        };
+        
+        Ok(value)
+    }
+
+    pub fn as_u64_option(&self, rdr: &ConfReader) -> Option<u64> {
+        self.as_u64(rdr).ok()
+    }
+
+    pub fn as_u64(&self, rdr: &ConfReader) -> Result<u64, String> {
+        let value = self.as_string(rdr)?;
+
+        let Ok(value) = value.parse::<u64>() else {
+            return Err(format!("'{}' could not be parsed as a `u64` for the key: '{}'", value, self.key));
+        };
+        
+        Ok(value)
+    }
+
+    pub fn as_u128_option(&self, rdr: &ConfReader) -> Option<u128> {
+        self.as_u128(rdr).ok()
+    }
+
+    pub fn as_u128(&self, rdr: &ConfReader) -> Result<u128, String> {
+        let value = self.as_string(rdr)?;
+
+        let Ok(value) = value.parse::<u128>() else {
+            return Err(format!("'{}' could not be parsed as a `u128` for the key: '{}'", value, self.key));
+        };
+        
+        Ok(value)
+    }
+
+    pub fn as_i8_option(&self, rdr: &ConfReader) -> Option<i8> {
+        self.as_i8(rdr).ok()
+    }
+
+    pub fn as_i8(&self, rdr: &ConfReader) -> Result<i8, String> {
+        let value = self.as_string(rdr)?;
+
+        let Ok(value) = value.parse::<i8>() else {
+            return Err(format!("'{}' could not be parsed as an `i8` for the key: '{}'", value, self.key));
+        };
+        
+        Ok(value)
+    }
+
+    pub fn as_i16_option(&self, rdr: &ConfReader) -> Option<i16> {
+        self.as_i16(rdr).ok()
+    }
+
+    pub fn as_i16(&self, rdr: &ConfReader) -> Result<i16, String> {
+        let value = self.as_string(rdr)?;
+
+        let Ok(value) = value.parse::<i16>() else {
+            return Err(format!("'{}' could not be parsed as an `i16` for the key: '{}'", value, self.key));
+        };
+        
+        Ok(value)
+    }
+
+    pub fn as_i32_option(&self, rdr: &ConfReader) -> Option<i32> {
+        self.as_i32(rdr).ok()
+    }
+
+    pub fn as_i32(&self, rdr: &ConfReader) -> Result<i32, String> {
+        let value = self.as_string(rdr)?;
+
+        let Ok(value) = value.parse::<i32>() else {
+            return Err(format!("'{}' could not be parsed as an `i32` for the key: '{}'", value, self.key));
+        };
+        
+        Ok(value)
+    }
+
+    pub fn as_i64_option(&self, rdr: &ConfReader) -> Option<i64> {
+        self.as_i64(rdr).ok()
+    }
+
+    pub fn as_i64(&self, rdr: &ConfReader) -> Result<i64, String> {
+        let value = self.as_string(rdr)?;
+
+        let Ok(value) = value.parse::<i64>() else {
+            return Err(format!("'{}' could not be parsed as an `i64` for the key: '{}'", value, self.key));
+        };
+        
+        Ok(value)
+    }
+
+    pub fn as_i128_option(&self, rdr: &ConfReader) -> Option<i128> {
+        self.as_i128(rdr).ok()
+    }
+
+    pub fn as_i128(&self, rdr: &ConfReader) -> Result<i128, String> {
+        let value = self.as_string(rdr)?;
+
+        let Ok(value) = value.parse::<i128>() else {
+            return Err(format!("'{}' could not be parsed as an `i128` for the key: '{}'", value, self.key));
+        };
+        
+        Ok(value)
+    }
+
+    pub fn as_f32_option(&self, rdr: &ConfReader) -> Option<f32> {
+        self.as_f32(rdr).ok()
+    }
+
+    pub fn as_f32(&self, rdr: &ConfReader) -> Result<f32, String> {
+        let value = self.as_string(rdr)?;
+
+        let Ok(value) = value.parse::<f32>() else {
+            return Err(format!("'{}' could not be parsed as an `f32` for the key: '{}'", value, self.key));
+        };
+        
+        Ok(value)
+    }
+
+    pub fn as_f64_option(&self, rdr: &ConfReader) -> Option<f64> {
+        self.as_f64(rdr).ok()
+    }
+
+    pub fn as_f64(&self, rdr: &ConfReader) -> Result<f64, String> {
+        let value = self.as_string(rdr)?;
+
+        let Ok(value) = value.parse::<f64>() else {
+            return Err(format!("'{}' could not be parsed as an `f64` for the key: '{}'", value, self.key));
+        };
+        
+        Ok(value)
+    }
 }
 
 #[derive(PartialEq, Debug)]
@@ -138,23 +317,24 @@ impl ConfReader {
         }
     }
 
-    fn get_value(&self, key: &str) -> Option<String> {
+    fn get_value(&self, key: impl Into<String>) -> Option<String> {
         let mut val = None;
+        let key = key.into();
 
         if let Some(rdr) = &self.dot_env_rdr {
-            if let Some(v) = rdr.get_value(key) {
+            if let Some(v) = rdr.get_value(&key) {
                 val = Some(v);
                 // dbg!("DotEnvReader reader get_value: {:?}", &val);
             }
         };
         if let Some(rdr) = &self.env_rdr {
-            if let Some(v) = rdr.get_value(key) {
+            if let Some(v) = rdr.get_value(&key) {
                 val = Some(v);
                 // dbg!("EnvReader reader get_value: {:?}", &val);
             }
         };
         if let Some(rdr) = &self.args_rdr {
-            if let Some(v) = rdr.get_value(key) {
+            if let Some(v) = rdr.get_value(&key) {
                 val = Some(v);
                 // println!("ArgsReader reader get_value: {} = {:?}", &key, &val);
             }
@@ -179,11 +359,7 @@ mod tests {
 
     #[test]
     fn create_config_reader() {
-        let config = ConfReader::new(vec![
-            ConfSource::DotEnv,
-            ConfSource::Environment,
-            ConfSource::CommandLine,
-        ]);
+        let config = ConfReader::default();
 
         assert!(config.args_rdr.is_some());
         assert!(config.env_rdr.is_some());
@@ -214,6 +390,19 @@ mod tests {
     }
 
     #[test]
+    fn read_config_option_none() {
+        let rdr = ConfReader::default();
+
+        let config = TestConfig {
+            uid: ConfVal::new("NONE").as_string_option(&rdr),
+            ..TestConfig::default()
+        };
+
+        assert!(config.uid.is_none());
+        assert_eq!(config.uid, None);
+    }
+
+    #[test]
     fn read_config_required_string_value() {
         let rdr = ConfReader::default();
 
@@ -223,5 +412,33 @@ mod tests {
         };
 
         assert_eq!(config.db_con_str, "Postgres".to_owned());
+    }
+
+    #[test]
+    fn read_config_required_u16_value() {
+        let rdr = ConfReader::default();
+
+        let config = TestConfig {
+            // db_con_str: ConfVal::new("DB").as_string(&rdr).unwrap(),
+            port: ConfVal::new("PORT").as_u16(&rdr).unwrap(),
+            ..TestConfig::default()
+        };
+
+        // assert_eq!(config.db_con_str, "Postgres".to_owned());
+        assert_eq!(config.port, 5432);
+    }
+
+    #[test]
+    fn read_config_required_bool_value() {
+        let rdr = ConfReader::default();
+
+        let config = TestConfig {
+            // db_con_str: ConfVal::new("DB").as_string(&rdr).unwrap(),
+            use_tls: ConfVal::new("TLS").as_bool(&rdr).unwrap(),
+            ..TestConfig::default()
+        };
+
+        // assert_eq!(config.db_con_str, "Postgres".to_owned());
+        assert_eq!(config.use_tls, false);
     }
 }

@@ -49,7 +49,7 @@ mod tests {
         let mut rdr = DotEnvReader::new();
         rdr.read_config();
 
-        assert_eq!(rdr.hash_map.len(), 4);
+        assert_eq!(rdr.hash_map.len(), 6);
         assert_eq!(rdr.get_value("NAME".to_owned()), Some("Francis".to_owned()));
     }
 }

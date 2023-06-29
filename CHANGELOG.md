@@ -21,16 +21,19 @@ Possible major sections of Changelog
 ***************************************************
 -->
 
-## [Unreleased]
+<!-- ## [Unreleased] -->
 
-## [0.1.0] - 2023-06-21
+## [0.1.0] - 2023-06-29
 
-### Added
+### Initial Release
 
-- `ReadConfig` trait
-  - `.env` file reader.
-  - .`args` reader.
-  - `env` reader
-- `ConfigReader` struct.
-  - `new` initialises the source readers and reads data from their sources.
-  -
+- This is the first working version of the crate.
+
+- `ConfReader` struct.
+  - `default` initialises a new `ConfReader` for all three sources.
+  - `new` initialises a `ConfReader` from the supplied sources, configures each source and reads data from their sources.
+- `ConfSource` is an enumeration of sources:
+  - `DotEnv` uses an `.env` file as a source.
+  - `Environment` reads from the process' environment (`std::env`)
+  - `CommandLine`, reads command line arguments (as options)
+- `ConfVal` is a configuration struct for reading values from a `ConfReader` instance

@@ -1,4 +1,35 @@
-//!
+//! An environment values reader.
+//! 
+//! Provides a configurable way to read configuration data from a series of `ConfSource`es: 
+//! - A `.env` file, with keys of the same name as the process environment.
+//! - The process' environment (`std::env`).
+//! - Command line arguments.
+//! 
+//! # Examples
+//! 
+//! ```
+//! use dotenv_rdr::{ConfReader, ConfVal, ConfSource};
+//! 
+//! struct Config {
+//!     db_url: String,
+//!     db_port: u16,
+//!     db_uid: Option<String>,
+//!     db_pwd: Option<String>,
+//! }
+//! 
+//! let rdr = ConfReader::default();
+//! let config = Config {
+//!     db_url: ConfVal::new("DB_URL").as_string(&rdr).unwrap(),
+//!     db_port: ConfVal::new("PORT").cmd_line_key("db-port").as_u16(&rdr).unwrap(),
+//!     db_uid: ConfVal::new("DB_USER_NAME").cmd_line_key("user").cmd_line_short_arg("u").as_string_option(&rdr),
+//!     db_pwd: ConfVal::new("DB_PASSWORD").cmd_line_key("pwd").as_string_option(&rdr),
+//! };
+//! ```
+//! 
+//! The `ConfReader::default()` calls the `ConfReader::new()` function with all three 
+//! sources supplied.
+//! The `.env` file is read first, then the `std::env` overwrites it if a value is present;
+//! and, lastly, the command line arguments override whatever is there already.
 
 use command_line::ArgsReader;
 use dotenv::DotEnvReader;
@@ -15,14 +46,27 @@ trait ReadConf {
     fn get_value(&self, key: impl Into<String>) -> Option<String>;
 }
 
+/// A struct used to define options for retrieving values from the `ConfSource`es.
 #[derive(Debug)]
 pub struct ConfVal {
+    /// The key name of the value to be retrieved in the `.env` file and `std::env`
     key: String,
+    /// The key of the command line option, with out the leading `--`
     cmd_line_arg: Option<String>,
+    /// The sort key of the command line option, with out the leading `-`
     cmd_line_short: Option<String>,
 }
 
 impl ConfVal {
+    /// Creates a new `ConfVal` instance
+    /// 
+    /// # Parameters
+    /// 
+    /// * `key` : The key name to use in the `.env` file and `std::env`
+    /// 
+    /// # Returns
+    /// 
+    /// A new `ConfVal` instance with the `key` name set.
     pub fn new(key: impl Into<String>) -> Self {
         ConfVal {
             key: key.into(),
@@ -31,24 +75,30 @@ impl ConfVal {
         }
     }
 
-    pub fn cmd_line_key(&mut self, name: impl Into<String>) -> &Self {
+    /// Adds the key of the command line option, with out the leading `--`
+    pub fn cmd_line_key(&mut self, name: impl Into<String>) -> &mut Self {
         self.cmd_line_arg = Some(name.into());
         self
     }
 
-    pub fn cmd_line_shortkey(&mut self, name: impl Into<String>) -> &Self {
+    /// Adds the sort key of the command line option, with out the leading `-`
+    pub fn cmd_line_short_arg(&mut self, name: impl Into<String>) -> &mut Self {
         self.cmd_line_short = Some(name.into());
         self
     }
 
+    // Tries to parse the value of 
     pub fn as_string_option(&self, rdr: &ConfReader) -> Option<String> {
         self.as_string(rdr).ok()
     }
 
+    /// Tries to retrieve a value from the list of defined sources in the supplied
+    /// `ConfReader`.
+    /// 
+    /// 
     pub fn as_string(&self, rdr: &ConfReader) -> Result<String, String> {
         let mut value = None;
 
-        // Check if there was a short command line argument supplied for this value
         if let Some(val) = rdr.get_value(&self.key) {
             value = Some(val);
             // dbg!("(Dot)Env: {:?}", &value);
@@ -266,13 +316,19 @@ impl ConfVal {
     }
 }
 
+/// The enumeration of configuration sources
 #[derive(PartialEq, Debug)]
 pub enum ConfSource {
+    /// A `.env` file source.
     DotEnv,
+    /// The process' environment (`std::env`)
     Environment,
+    /// Command line arguments (as options)
     CommandLine,
 }
 
+/// A struct that defines which `ConfSource`s to use and provides their values to 
+/// `ConfVal` instances.
 pub struct ConfReader {
     dot_env_rdr: Option<DotEnvReader>,
     env_rdr: Option<EnvReader>,
@@ -321,18 +377,20 @@ impl ConfReader {
         let mut val = None;
         let key = key.into();
 
-        if let Some(rdr) = &self.dot_env_rdr {
-            if let Some(v) = rdr.get_value(&key) {
-                val = Some(v);
-                // dbg!("DotEnvReader reader get_value: {:?}", &val);
-            }
-        };
         if let Some(rdr) = &self.env_rdr {
             if let Some(v) = rdr.get_value(&key) {
                 val = Some(v);
                 // dbg!("EnvReader reader get_value: {:?}", &val);
             }
         };
+
+        if let Some(rdr) = &self.dot_env_rdr {
+            if let Some(v) = rdr.get_value(&key) {
+                val = Some(v);
+                // dbg!("DotEnvReader reader get_value: {:?}", &val);
+            }
+        };
+        
         if let Some(rdr) = &self.args_rdr {
             if let Some(v) = rdr.get_value(&key) {
                 val = Some(v);

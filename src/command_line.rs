@@ -18,13 +18,14 @@ impl ArgsReader {
 impl ReadConf for ArgsReader {
     fn read_config(&mut self) {
         let args: Vec<String> = env::args().collect();
+        // dbg!("{}", &args);
         let mut index: usize = 1;
         'l: loop {
             match read_key_value(&args, index) {
                 Some((i, k, v)) => {
                     // dbg!("Command line argument: ({}, {})", &k, &v);
                     self.hash_map.insert(k, v);
-                    index += i;
+                    index = i;
                 }
                 None => break 'l,
             }
@@ -43,23 +44,23 @@ fn read_key_value(args: &[String], index: usize) -> Option<(usize, String, Strin
             if k.starts_with("--") {
                 // println!("Double dash command line argument");
                 Some((index + 1, k[2..].to_owned(), v.to_owned()))
-            } else if k.starts_with('-') {
+            } else if k.starts_with("-") {
                 // println!("Single dash command line argument");
                 Some((index + 1, k[1..].to_owned(),  v.to_owned()))
             } else {
                 // println!("No dash command line argument");
-                Some((index + 2, k.to_owned(), v.to_owned()))
+                Some((index + 1, k.to_owned(), v.to_owned()))
             }
         } else {
             // It's a switch not a value option
             if k.starts_with("--") {
-                // println!("Double dash command line argument");
+                println!("Double dash command line argument with no value");
                 Some((index + 1, k[2..].to_owned(), String::new()))
-            } else if k.starts_with('-') {
-                // println!("Single dash command line argument");
+            } else if k.starts_with("-") {
+                println!("Single dash command line argument with no value");
                 Some((index + 1, k[1..].to_owned(), String::new()))
             }else{
-                None
+                Some((index + 1, k.to_owned(), String::new()))
             }
         }
     } else {

@@ -23,6 +23,12 @@ Possible major sections of Changelog
 
 <!-- ## [Unreleased] -->
 
+## [0.1.1] - 2023-06-30
+
+### Fixed
+
+- A big in the `DotEnvReader` where there was an `=` in the value.
+
 ## [0.1.0] - 2023-06-29
 
 ### Initial Release

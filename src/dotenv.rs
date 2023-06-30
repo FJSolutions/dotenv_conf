@@ -23,12 +23,14 @@ impl ReadConf for DotEnvReader {
                 for line in contents.lines() {
                     if line.starts_with('#') {
                         continue;
+                    } else if line.trim().is_empty() {
+                        continue;
                     }
 
-                    let kvp: Vec<&str> = line.split('=').collect();
-                    if kvp.len() == 2 {
-                        self.hash_map
-                            .insert(kvp[0].trim().to_owned(), kvp[1].trim().to_owned());
+                    if let Some(index) = line.find('=') {
+                        let (k , v) = line.split_at(index);
+                            self.hash_map
+                                .insert(k.trim().to_owned(), v[1..].trim().to_owned());
                     }
                 }
             }

@@ -24,7 +24,7 @@ struct Config {
 
 fn read_config() -> Result<Config, String> {
   let rdr = ConfReader::default();
-  Config {
+  let config = Config {
     db_url: ConfVal::new("DB_URL").as_string(&rdr)?,
     db_port: ConfVal::new("PORT").cmd_line_key("db-port").as_u16(&rdr)?,
     db_uid: ConfVal::new("DB_USER_NAME")
@@ -33,7 +33,8 @@ fn read_config() -> Result<Config, String> {
       .as_string_option(&rdr),
     db_pwd: ConfVal::new("DB_PASSWORD").cmd_line_key("pwd").as_string_option(&rdr),
   };
-]
+  Ok(config)
+}
 ```
 
 **Notice**

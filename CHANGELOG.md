@@ -23,6 +23,12 @@ Possible major sections of Changelog
 
 <!-- ## [Unreleased] -->
 
+## [0.1.2] - 2023-06-30
+
+### Changed
+
+- Updated the documentation to be more realistic copy-and-paste example.
+
 ## [0.1.1] - 2023-06-30
 
 ### Fixed

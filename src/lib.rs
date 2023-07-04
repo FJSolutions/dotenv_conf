@@ -1,32 +1,40 @@
 //! An environment values reader.
-//! 
-//! Provides a configurable way to read configuration data from a series of `ConfSource`es: 
+//!
+//! Provides a configurable way to read configuration data from a series of `ConfSource`es:
 //! - A `.env` file, with keys of the same name as the process environment.
 //! - The process' environment (`std::env`).
 //! - Command line arguments.
-//! 
+//!
 //! # Examples
-//! 
+//!
 //! ```
 //! use dotenv_rdr::{ConfReader, ConfVal, ConfSource};
-//! 
+//!
 //! struct Config {
 //!     db_url: String,
 //!     db_port: u16,
 //!     db_uid: Option<String>,
 //!     db_pwd: Option<String>,
 //! }
-//! 
-//! let rdr = ConfReader::default();
-//! let config = Config {
-//!     db_url: ConfVal::new("DB_URL").as_string(&rdr).unwrap(),
-//!     db_port: ConfVal::new("PORT").cmd_line_key("db-port").as_u16(&rdr).unwrap(),
-//!     db_uid: ConfVal::new("DB_USER_NAME").cmd_line_key("user").cmd_line_short_arg("u").as_string_option(&rdr),
+//!
+//! fn read_config() -> std::result::Result<Config, String> {
+//!   let rdr = ConfReader::default();
+//!   let config = Config {
+//!     db_url: ConfVal::new("DB_URL").as_string(&rdr)?,
+//!     db_port: ConfVal::new("PORT").cmd_line_key("db-port").as_u16(&rdr)?,
+//!     db_uid: ConfVal::new("DB_USER_NAME")
+//!       .cmd_line_key("user")
+//!       .cmd_line_short_arg("u")
+//!       .as_string_option(&rdr),
 //!     db_pwd: ConfVal::new("DB_PASSWORD").cmd_line_key("pwd").as_string_option(&rdr),
-//! };
+//!   };
+//!   Ok(config)
+//! }
+//!
+//! read_config().unwrap();
 //! ```
-//! 
-//! The `ConfReader::default()` calls the `ConfReader::new()` function with all three 
+//!
+//! The `ConfReader::default()` calls the `ConfReader::new()` function with all three
 //! sources supplied.
 //! The `.env` file is read first, then the `std::env` overwrites it if a value is present;
 //! and, lastly, the command line arguments override whatever is there already.
@@ -59,13 +67,13 @@ pub struct ConfVal {
 
 impl ConfVal {
     /// Creates a new `ConfVal` instance
-    /// 
+    ///
     /// # Parameters
-    /// 
+    ///
     /// * `key` : The key name to use in the `.env` file and `std::env`
-    /// 
+    ///
     /// # Returns
-    /// 
+    ///
     /// A new `ConfVal` instance with the `key` name set.
     pub fn new(key: impl Into<String>) -> Self {
         ConfVal {
@@ -87,15 +95,15 @@ impl ConfVal {
         self
     }
 
-    // Tries to parse the value of 
+    // Tries to parse the value of
     pub fn as_string_option(&self, rdr: &ConfReader) -> Option<String> {
         self.as_string(rdr).ok()
     }
 
     /// Tries to retrieve a value from the list of defined sources in the supplied
     /// `ConfReader`.
-    /// 
-    /// 
+    ///
+    ///
     pub fn as_string(&self, rdr: &ConfReader) -> Result<String, String> {
         let mut value = None;
 
@@ -127,7 +135,9 @@ impl ConfVal {
 
         // Empty value found
         if value.is_empty() {
-            return Err(format!("An empty string was found for the key '{}'", &self.key).to_string());
+            return Err(
+                format!("An empty string was found for the key '{}'", &self.key).to_string(),
+            );
         };
 
         Ok(value)
@@ -143,7 +153,7 @@ impl ConfVal {
         let Ok(value) = value.to_lowercase().parse::<bool>() else {
             return Err(format!("'{}' could not be parsed as a `bool` for the key: '{}'", value, self.key));
         };
-        
+
         Ok(value)
     }
 
@@ -157,7 +167,7 @@ impl ConfVal {
         let Ok(value) = value.parse::<u8>() else {
             return Err(format!("'{}' could not be parsed as a `u8` for the key: '{}'", value, self.key));
         };
-        
+
         Ok(value)
     }
 
@@ -171,7 +181,7 @@ impl ConfVal {
         let Ok(value) = value.parse::<u16>() else {
             return Err(format!("'{}' could not be parsed as a `u16` for the key: '{}'", value, self.key));
         };
-        
+
         Ok(value)
     }
 
@@ -185,7 +195,7 @@ impl ConfVal {
         let Ok(value) = value.parse::<u32>() else {
             return Err(format!("'{}' could not be parsed as a `u32` for the key: '{}'", value, self.key));
         };
-        
+
         Ok(value)
     }
 
@@ -199,7 +209,7 @@ impl ConfVal {
         let Ok(value) = value.parse::<u64>() else {
             return Err(format!("'{}' could not be parsed as a `u64` for the key: '{}'", value, self.key));
         };
-        
+
         Ok(value)
     }
 
@@ -213,7 +223,7 @@ impl ConfVal {
         let Ok(value) = value.parse::<u128>() else {
             return Err(format!("'{}' could not be parsed as a `u128` for the key: '{}'", value, self.key));
         };
-        
+
         Ok(value)
     }
 
@@ -227,7 +237,7 @@ impl ConfVal {
         let Ok(value) = value.parse::<i8>() else {
             return Err(format!("'{}' could not be parsed as an `i8` for the key: '{}'", value, self.key));
         };
-        
+
         Ok(value)
     }
 
@@ -241,7 +251,7 @@ impl ConfVal {
         let Ok(value) = value.parse::<i16>() else {
             return Err(format!("'{}' could not be parsed as an `i16` for the key: '{}'", value, self.key));
         };
-        
+
         Ok(value)
     }
 
@@ -255,7 +265,7 @@ impl ConfVal {
         let Ok(value) = value.parse::<i32>() else {
             return Err(format!("'{}' could not be parsed as an `i32` for the key: '{}'", value, self.key));
         };
-        
+
         Ok(value)
     }
 
@@ -269,7 +279,7 @@ impl ConfVal {
         let Ok(value) = value.parse::<i64>() else {
             return Err(format!("'{}' could not be parsed as an `i64` for the key: '{}'", value, self.key));
         };
-        
+
         Ok(value)
     }
 
@@ -283,7 +293,7 @@ impl ConfVal {
         let Ok(value) = value.parse::<i128>() else {
             return Err(format!("'{}' could not be parsed as an `i128` for the key: '{}'", value, self.key));
         };
-        
+
         Ok(value)
     }
 
@@ -297,7 +307,7 @@ impl ConfVal {
         let Ok(value) = value.parse::<f32>() else {
             return Err(format!("'{}' could not be parsed as an `f32` for the key: '{}'", value, self.key));
         };
-        
+
         Ok(value)
     }
 
@@ -311,7 +321,7 @@ impl ConfVal {
         let Ok(value) = value.parse::<f64>() else {
             return Err(format!("'{}' could not be parsed as an `f64` for the key: '{}'", value, self.key));
         };
-        
+
         Ok(value)
     }
 }
@@ -327,7 +337,7 @@ pub enum ConfSource {
     CommandLine,
 }
 
-/// A struct that defines which `ConfSource`s to use and provides their values to 
+/// A struct that defines which `ConfSource`s to use and provides their values to
 /// `ConfVal` instances.
 pub struct ConfReader {
     dot_env_rdr: Option<DotEnvReader>,
@@ -390,7 +400,7 @@ impl ConfReader {
                 // dbg!("DotEnvReader reader get_value: {:?}", &val);
             }
         };
-        
+
         if let Some(rdr) = &self.args_rdr {
             if let Some(v) = rdr.get_value(&key) {
                 val = Some(v);

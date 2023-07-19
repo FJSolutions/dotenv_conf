@@ -8,7 +8,7 @@
 //! # Examples
 //!
 //! ```
-//! use dotenv_rdr::{ConfReader, ConfVal, ConfSource};
+//! use dotenv_conf::{ConfReader, ConfVal, ConfSource};
 //!
 //! struct Config {
 //!     db_url: String,
@@ -42,6 +42,7 @@
 use command_line::ArgsReader;
 use dotenv::DotEnvReader;
 use environment::EnvReader;
+
 mod command_line;
 mod dotenv;
 mod environment;

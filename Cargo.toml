@@ -1,13 +1,9 @@
 [package]
-name = "dotenv_rdr"
-version = "0.1.2"
+name = "dotenv_conf"
+version = "0.2.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 
-# [[test]]
-# name="cmd_args"
-# path="tests/cmd_args.rs"
-# harness=false

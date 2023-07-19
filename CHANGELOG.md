@@ -23,6 +23,12 @@ Possible major sections of Changelog
 
 <!-- ## [Unreleased] -->
 
+## [0.2.0] - 2023-07-19
+
+### Changed
+
+- The crate name to `dotenv_conf`
+
 ## [0.1.2] - 2023-06-30
 
 ### Changed

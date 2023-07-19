@@ -1,6 +1,6 @@
-# DotEnv-Rdr
+# DotEnv-Conf
 
-The `dotenv_rdr` (`.env` reader) crate is a `.env` reader that allows you to get strongly typed configuration information from a `.env` file, the process' `environment`, or from command-line `args`.
+The `dotenv_conf` (`.env` configuration reader) crate is a `.env` reader that allows you to get strongly typed configuration information from a `.env` file, the process' `environment`, or from command-line `args`.
 
 It comprises of two structs. The first (`ConfReader`) is configured with which sources to read from, and the second (`ConfVal`) is a builder that for configuring options of what keys to use to get values and methods to parse the data retrieved to strongly typed values.
 
@@ -13,7 +13,7 @@ The `ConfVal` methods for retrieving strongly typed data all return a `Result` o
 ## Example
 
 ```Rust
-use dotenv_rdr::{ConfReader, ConfVal, ConfSource};
+use dotenv_conf::{ConfReader, ConfVal, ConfSource};
 
 struct Config {
     db_url: String,
@@ -24,6 +24,7 @@ struct Config {
 
 fn read_config() -> Result<Config, String> {
   let rdr = ConfReader::default();
+
   let config = Config {
     db_url: ConfVal::new("DB_URL").as_string(&rdr)?,
     db_port: ConfVal::new("PORT").cmd_line_key("db-port").as_u16(&rdr)?,
@@ -33,6 +34,7 @@ fn read_config() -> Result<Config, String> {
       .as_string_option(&rdr),
     db_pwd: ConfVal::new("DB_PASSWORD").cmd_line_key("pwd").as_string_option(&rdr),
   };
+
   Ok(config)
 }
 ```
